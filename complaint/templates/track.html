@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Track Complaint - Cop Friendly</title>
+    <style>
+        body { 
+            font-family: Arial; 
+            background: #f2f2f2;
+            margin: 0;
+            padding: 20px;
+        }
+        .nav {
+            background: #333; color: white; padding: 12px 20px;
+            border-radius: 5px; margin-bottom: 20px;
+        }
+        .nav a {
+            color: white; margin-right: 20px; text-decoration: none; font-weight: bold;
+        }
+        .nav a:hover { text-decoration: underline; }
+        .container {
+            max-width: 600px; margin: 0 auto;
+        }
+        .search-box {
+            background: white; padding: 30px; border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1); margin-bottom: 20px;
+        }
+        input, button {
+            width: 100%; padding: 12px; margin: 10px 0; 
+            border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box;
+            font-size: 16px;
+        }
+        button { 
+            background: #007BFF; color: white; border: none; 
+            cursor: pointer; font-weight: bold;
+        }
+        button:hover { background: #0056b3; }
+        .result {
+            background: white; padding: 20px; border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1); margin-top: 20px;
+            display: none;
+        }
+        .result.show { display: block; }
+        .status-badge {
+            display: inline-block; padding: 8px 15px; border-radius: 20px;
+            font-weight: bold; color: white; margin-top: 10px;
+        }
+        .status-pending { background: #ff9800; }
+        .status-in-progress { background: #2196F3; }
+        .status-completed { background: #4CAF50; }
+        .status-not-found { background: #f44336; }
+        .detail-row {
+            margin: 12px 0; padding: 10px; background: #f9f9f9;
+            border-left: 3px solid #007BFF;
+        }
+        .detail-row strong { color: #333; }
+        .error-msg {
+            color: #f44336; font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<div class="nav">
+    <a href="/dashboard">← Back to Dashboard</a>
+</div>
+
+<div class="container">
+    <div class="search-box">
+        <h2>Track Your Complaint</h2>
+        <input type="text" id="complaintId" placeholder="Enter Complaint ID (e.g., 1, 2, 3...)" required>
+        <button type="button" onclick="track()">Check Status</button>
+    </div>
+
+    <div class="result" id="result">
+        <h3>Complaint Details</h3>
+        <div id="resultContent"></div>
+    </div>
+</div>
+
+<script>
+async function track() {
+    const id = document.getElementById('complaintId').value.trim();
+    if (!id) {
+        alert('Please enter a Complaint ID');
+        return;
+    }
+
+    try {
+        const response = await fetch(`/track?id=${encodeURIComponent(id)}`);
+        const data = await response.json();
+        
+        const resultDiv = document.getElementById('result');
+        const contentDiv = document.getElementById('resultContent');
+        
+        if (data.status === 'Not Found') {
+            contentDiv.innerHTML = `
+                <div class="status-badge status-not-found">Not Found</div>
+                <p class="error-msg">❌ Complaint ID ${id} not found in the system</p>
+            `;
+        } else {
+            let statusClass = 'status-pending';
+            if (data.status === 'In Progress') statusClass = 'status-in-progress';
+            if (data.status === 'Completed') statusClass = 'status-completed';
+            
+            let html = `
+                <div class="detail-row">
+                    <strong>Complaint ID:</strong> ${id}
+                </div>
+                <div class="detail-row">
+                    <strong>Status:</strong>
+                    <span class="status-badge ${statusClass}">${data.status}</span>
+                </div>
+            `;
+            
+            if (data.title) {
+                html += `
+                    <div class="detail-row">
+                        <strong>Title:</strong> ${data.title}
+                    </div>
+                `;
+            }
+            
+            if (data.description) {
+                html += `
+                    <div class="detail-row">
+                        <strong>Description:</strong> ${data.description}
+                    </div>
+                `;
+            }
+            
+            if (data.location) {
+                html += `
+                    <div class="detail-row">
+                        <strong>Location:</strong> ${data.location}
+                    </div>
+                `;
+            }
+            
+            if (data.category) {
+                html += `
+                    <div class="detail-row">
+                        <strong>Category:</strong> ${data.category}
+                    </div>
+                `;
+            }
+            
+            contentDiv.innerHTML = html;
+        }
+        
+        resultDiv.classList.add('show');
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Error retrieving complaint status');
+    }
+}
+
+// Allow Enter key to trigger search
+document.getElementById('complaintId').addEventListener('keypress', function(event) {
+    if (event.key === 'Enter') track();
+});
+</script>
+
+</body>
+</html>

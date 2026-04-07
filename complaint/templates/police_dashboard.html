@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Police Dashboard - Cop Friendly</title>
+    <style>
+        body { 
+            font-family: Arial; 
+            background: #f2f2f2; 
+            margin: 0; 
+            padding: 20px;
+        }
+        .nav {
+            background: #d32f2f; color: white; padding: 12px 20px;
+            border-radius: 5px; margin-bottom: 20px; display: flex; justify-content: space-between;
+        }
+        .nav a {
+            color: white; text-decoration: none; margin: 0 15px; font-weight: bold;
+        }
+        .nav a:hover { text-decoration: underline; }
+        .container {
+            max-width: 1200px; margin: 0 auto;
+        }
+        h1 { color: #333; }
+        .complaint-card {
+            background: white; padding: 15px; margin: 10px 0;
+            border-left: 5px solid #d32f2f; border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .complaint-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 10px;
+        }
+        .complaint-id { font-weight: bold; color: #d32f2f; }
+        .status-badge {
+            padding: 5px 10px; border-radius: 20px; font-size: 12px; font-weight: bold;
+        }
+        .status-pending { background: #ff9800; color: white; }
+        .status-in-progress { background: #2196F3; color: white; }
+        .status-completed { background: #4CAF50; color: white; }
+        .complaint-details {
+            margin: 10px 0; color: #666;
+        }
+        .action-buttons {
+            display: flex; gap: 10px; margin-top: 10px;
+        }
+        button {
+            padding: 8px 15px; border: none; border-radius: 5px;
+            cursor: pointer; font-weight: bold; transition: 0.3s;
+        }
+        .btn-complete {
+            background: #4CAF50; color: white;
+        }
+        .btn-complete:hover { background: #45a049; }
+        .btn-in-progress {
+            background: #2196F3; color: white;
+        }
+        .btn-in-progress:hover { background: #0b7dda; }
+        .no-complaints {
+            background: white; padding: 30px; text-align: center;
+            border-radius: 5px; color: #999;
+        }
+    </style>
+</head>
+<body>
+
+<div class="nav">
+    <h2 style="margin: 0;">👮 Police Dashboard</h2>
+    <a href="/logout">Logout</a>
+</div>
+
+<div class="container">
+    <h1>All Complaints</h1>
+    
+    {% if complaints %}
+        {% for complaint in complaints %}
+        <div class="complaint-card">
+            <div class="complaint-header">
+                <div>
+                    <span class="complaint-id">Complaint ID: {{ complaint.complaint_id }}</span>
+                    <span class="status-badge 
+                        {% if complaint.status == 'Pending' %}status-pending
+                        {% elif complaint.status == 'In Progress' %}status-in-progress
+                        {% elif complaint.status == 'Completed' %}status-completed
+                        {% endif %}">
+                        {{ complaint.status }}
+                    </span>
+                </div>
+            </div>
+            
+            <h3 style="margin: 10px 0;">{{ complaint.title }}</h3>
+            
+            <div class="complaint-details">
+                <p><strong>Category:</strong> {{ complaint.category if complaint.category else 'N/A' }}</p>
+                <p><strong>Location:</strong> {{ complaint.location }}</p>
+                <p><strong>Description:</strong> {{ complaint.description }}</p>
+                <p><strong>User ID:</strong> {{ complaint.user_id }}</p>
+            </div>
+            
+            <div class="action-buttons">
+                {% if complaint.status != 'In Progress' %}
+                    <button class="btn-in-progress" onclick="updateStatus({{ complaint.complaint_id }}, 'In Progress')">
+                        Mark In Progress
+                    </button>
+                {% endif %}
+                
+                {% if complaint.status != 'Completed' %}
+                    <button class="btn-complete" onclick="updateStatus({{ complaint.complaint_id }}, 'Completed')">
+                        Mark Completed
+                    </button>
+                {% else %}
+                    <button style="background: #ccc; color: #666; cursor: not-allowed;" disabled>
+                        ✓ Completed
+                    </button>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="no-complaints">
+            <p>No complaints found</p>
+        </div>
+    {% endif %}
+</div>
+
+<script>
+async function updateStatus(complaintId, status) {
+    try {
+        const response = await fetch('/update_complaint_status', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                complaint_id: complaintId,
+                status: status
+            })
+        });
+        
+        if (response.ok) {
+            alert(`Complaint #${complaintId} updated to: ${status}`);
+            location.reload();
+        } else {
+            alert('Error updating complaint status');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Error updating complaint status');
+    }
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Complaint Submitted</title>
+    <style>
+        body { font-family: Arial; background: #f9f9f9; }
+        .box { width: 400px; margin: 80px auto; padding: 20px; background: white; border-radius: 10px; }
+        .box a { display: inline-block; margin-top: 20px; color: #007BFF; text-decoration: none; }
+    </style>
+</head>
+<body>
+
+<div class="box">
+    <h2>Complaint Submitted</h2>
+    <p>Your complaint has been recorded successfully.</p>
+    <p><strong>Complaint ID:</strong> {{ complaint_id }}</p>
+    <p>Use this ID to track the status of your complaint.</p>
+    <a href="/track">Track Complaint</a><br>
+    <a href="/dashboard">Back to Dashboard</a>
+</div>
+
+</body>
+</html>
